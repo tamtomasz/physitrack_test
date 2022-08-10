@@ -1,2 +1,13 @@
 # IDE specific Files
 .idea/*
+
+
+# logs
+geckodriver.log
+
+# virtualenvs
+venv/*
+venv*/*
+
+# pytchon cache
+__pycache__
