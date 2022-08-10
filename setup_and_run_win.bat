@@ -2,7 +2,7 @@
 
 set args=%*
 
-py -m venv %~dp0venv123
-call %~dp0venv123\Scripts\activate.bat
+py -m venv %~dp0venv
+call %~dp0venv\Scripts\activate.bat
 pip install -r %~dp0requirements.txt
-python -m run_all_tests %args%
+python -m test_runner %args%
