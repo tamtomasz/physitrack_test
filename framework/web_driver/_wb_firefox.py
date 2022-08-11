@@ -2,10 +2,10 @@ from selenium.webdriver import Firefox
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from webdriver_manager.firefox import GeckoDriverManager
 
-from framework.web_driver.webdriver_base import WebDriverBaseClass
+from framework.web_driver.webbrowser_base import WebBrowserBaseClass
 
 
-class FirefoxWebDriver(WebDriverBaseClass):
+class FirefoxWebDriver(WebBrowserBaseClass):
 
     def __init__(self):
         super().__init__(Firefox, FirefoxService, GeckoDriverManager)

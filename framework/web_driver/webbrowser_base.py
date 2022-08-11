@@ -5,10 +5,10 @@ from selenium.webdriver.common.service import Service
 from webdriver_manager.core.manager import DriverManager
 
 
-class WebDriverBaseClass:
+class WebBrowserBaseClass:
 
     def __new__(cls, *args, **kwargs):
-        if cls is WebDriverBaseClass:
+        if cls is WebBrowserBaseClass:
             raise TypeError(f"only children of '{cls.__name__}' may be instantiated")
         return super().__new__(cls, *args, **kwargs)
 
@@ -19,7 +19,7 @@ class WebDriverBaseClass:
         self._web_browser_service = web_browser_service
         self._web_browser_driver_manager = web_browser_driver_manager
 
-    def install(self):
+    def install_driver(self):
         self._driver_path = self._web_browser_driver_manager().install()
 
     @property

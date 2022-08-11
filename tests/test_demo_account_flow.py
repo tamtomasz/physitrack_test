@@ -1,24 +1,23 @@
-import time
-
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver import Remote, ActionChains
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver import Remote
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.keys import Keys
 
+from framework.page_objects.country_selection_page import CountrySelectionPage
+from framework.page_objects.demo_main_page import DemoMainPage
+from framework.page_objects.login_page import LoginPage
+from framework.page_objects.main_page import MainPage
+from framework.page_objects.navigation_page import NavigationPage
+from framework.page_objects.patient_page import PatientPage
+from framework.page_objects.patient_selection_page import PatientSelectionPage
+from framework.page_objects.patients_list_page import PatientsListPage
+from framework.page_objects.popup_page import PopupPage
+from framework.page_objects.program_editor_page import ProgramEditorPage
+from framework.page_objects.program_page import ProgramPage
+from framework.page_objects.program_preview_page import ProgramPreviewPage
 from tests.base_test import BaseTest
 
 
 class TestDemo(BaseTest):
-
-    def _wait_for_element_to_load(self, find_by, value, timeout=10):
-        try:
-            element_present = EC.presence_of_element_located(
-                (find_by, value))
-            WebDriverWait(self.driver, timeout).until(element_present)
-        except TimeoutException:
-            print("Timed out waiting for page to load")
 
     def test_demo_account_flow(self):
         driver: Remote = self.driver
@@ -27,102 +26,86 @@ class TestDemo(BaseTest):
         driver.get("https://www.physitrack.co.uk/")
 
         # click login btn
-        login_button_url = "https://us.physitrack.com/login"
-        navbar_container = driver.find_element(By.XPATH, '//div[@id="top"]')
-        login_button = navbar_container.find_element(By.XPATH, f'//a[@href="{login_button_url}"]')
-        login_button.click()
+        main_page = MainPage(driver)
+        main_page.click_log_in_button()
         driver.switch_to.window(driver.window_handles[-1])
 
         # pick USA flag
-        self._wait_for_element_to_load(By.XPATH, '//img[@alt="flag_us"]')
-        usa_flag = driver.find_element(By.XPATH, '//img[@alt="flag_us"]')
-        usa_flag.click()
+        country_selection_page = CountrySelectionPage(driver)
+        country_selection_page.select_flag('flag_us')
 
         # click Continue
-        continue_button = driver.find_element(By.XPATH, '//button[contains(text(), "Continue")]')
-        continue_button.click()
+        country_selection_page.click_continue()
 
         # click Back to Demo
-        back_to_demo_button = driver.find_element(
-            By.XPATH, '//a[@class="link-back-to-demo" and contains(text(), "Back to demo")]')
-        back_to_demo_button.click()
+        login_page = LoginPage(driver)
+        login_page.click_back_to_demo()
 
         # click skip tour button
-        self._wait_for_element_to_load(By.XPATH, '//iframe[@title="Tour"]', timeout=30)
-        tour_frame = driver.find_element(By.XPATH, '//iframe[@title="Tour"]')
-        driver.switch_to.frame(tour_frame)
-        skip_tour_button = driver.find_element(By.XPATH, '//p[contains(text(), "Skip tour")]')
-        skip_tour_button.click()
-        driver.switch_to.default_content()
-
-        # close notifications
-        # self._wait_for_element_to_load(By.XPATH, '//iframe[@title="Help Scout Beacon - Messages and Notifications"]',
-        #                                timeout=30)
-        # notifications_box = driver.find_element(By.XPATH,
-        #                                         '//iframe[@title="Help Scout Beacon - Messages and Notifications"]')
-        # driver.switch_to.frame(notifications_box)
-        # close_notifications_button = driver.find_element(By.XPATH, '//div[@id="BeaconNotifications-root"]')
-        # span_to_close = close_notifications_button.find_element(
-        #     By.XPATH, '//span[@class="sc-AxgMl cVmQYF c-BeaconCloseButton__label"]')
-        # ActionChains(driver).move_to_element(close_notifications_button).perform()
-        # ActionChains(driver).move_to_element(span_to_close).click().perform()
-        # driver.switch_to.default_content()
+        tour_popup_page = PopupPage(driver, 'Tour')
+        tour_popup_page.click_popup_button('Skip tour')
 
         # insert text into search bar
-        search_bar = driver.find_element(By.XPATH, '//input[@id="autocomplete-0-input"]')
-        search_bar.send_keys("Bird dog")
-        search_bar.send_keys(Keys.ENTER)
+        demo_main_page = DemoMainPage(driver)
+        demo_main_page.insert_text_into_search_bar("Bird dog")
 
         # click close tour button
-        self._wait_for_element_to_load(By.XPATH, '//iframe[@title="Tour"]')
-        tour_frame = driver.find_element(By.XPATH, '//iframe[@title="Tour"]')
-        driver.switch_to.frame(tour_frame)
-        close_tour_button = driver.find_element(By.XPATH, '//p[contains(text(), "Close")]')
-        close_tour_button.click()
-        driver.switch_to.default_content()
+        tour_popup_page.click_popup_button('Close')
 
         # select Bird dog excercise
-        exercises = driver.find_elements(By.XPATH, '//div[@class="list-content-container"]')
-        exercise_to_bo_added = exercises[0]
-        div_with_title = exercise_to_bo_added.find_element(By.XPATH, '//div[@class="lc-text"]')
-        link_with_exc_title = div_with_title.find_element(By.TAG_NAME, 'a')
-        expected_excrcise_title = link_with_exc_title.get_attribute('title')
-        expected_exercise_id = link_with_exc_title.get_attribute('href').split('id=')[1]
-        add_checkbox = exercise_to_bo_added.find_element(By.XPATH, '//img[@class="cb exercise-checkbox"]')
-        add_checkbox.click()
+        demo_main_page.select_exercise_by_index(0)
 
         # click cart button
-        cart_div = driver.find_element(By.XPATH, '//div[@class="cart-link-container"]')
-        self._wait_for_element_to_load(By.XPATH, '//div[@class="nav-counter" and contains(text(), "1")]')
-        cart_div.click()
+        demo_main_page.wait_for_items_in_cart(1)
+        demo_main_page.wait_for_cart_to_activate()
+        demo_main_page.click_cart_button()
 
         # click on Don't show tour
-        self._wait_for_element_to_load(By.XPATH, '//iframe[@title="Tour"]')
-        tour_frame = driver.find_element(By.XPATH, '//iframe[@title="Tour"]')
-        driver.switch_to.frame(tour_frame)
-        dont_show_tour_button = driver.find_element(By.XPATH, '//p[contains(text(), "Don’t show tour")]')
-        dont_show_tour_button.click()
-        driver.switch_to.default_content()
+        tour_popup_page.click_popup_button('Don’t show tour')
 
         # click assign button
-        self._wait_for_element_to_load(By.XPATH, '//a[@id="assign-program-modal-button"]')
-        assign_link = driver.find_element(By.XPATH, '//a[@id="assign-program-modal-button"]')
-        assign_link.click()
+        program_page = ProgramPage(driver)
+        program_page.wait_for_assign_button()
+        program_page.click_assign_button()
 
         # select patient
-        patient_selector_div = driver.find_element(By.XPATH, '//div[contains(@class, "patient-selector")]')
-        patient_selector_div.click()
-        patient_selector_input = driver.find_element(By.XPATH, '//input[contains(@id, "react-select")]')
-        patient_selector_input.send_keys("Demo")
-        self._wait_for_element_to_load(By.XPATH, '//div[contains(text(), "Demo-patient")]')
-        patient_selector_input.send_keys(Keys.ENTER)
+        patient_selection_page = PatientSelectionPage(driver)
+        patient_selection_page.select_patient('Demo')
 
         # assign program to patient
-        assign_program_button = driver.find_element(By.XPATH, '//button[@id="assign-protocol-button"]')
-        assign_program_button.click()
+        patient_selection_page.click_assign_program_to_patient()
 
         # get program code
-        new_program_code_div = driver.find_element(By.XPATH, '//div[contains(text(), "Program code:")]')
-        new_program_code_str = new_program_code_div.find_element(By.TAG_NAME, 'strong')
+        program_preview_page = ProgramPreviewPage(driver)
+        program_preview_page.wait_for_page_to_load()
+        new_program_code_str = program_preview_page.get_program_code()
 
-        time.sleep(5)
+        # close windows
+        program_preview_page.close()
+        program_editor_page = ProgramEditorPage(driver)
+        program_editor_page.close()
+
+        # open patients list
+        navigation_page = NavigationPage(driver)
+        navigation_page.click_on_patients_tab()
+
+        # click skip tour button
+        tour_popup_page.click_popup_button('Skip tour')
+
+        # click on Demo-patient
+        patients_list_page = PatientsListPage(driver)
+        patients_list_page.click_on_demo_patient()
+
+        # click on Don't show tour
+        tour_popup_page.click_popup_button('Don’t show tour')
+
+        # verify program code is correct
+        patient_page = PatientPage(driver)
+        client_program_selector_div = driver.find_element(*patient_page.client_program_selector_div.locator)
+        try:
+            client_program_selector_div.find_element(By.XPATH, f'//div[text()="{new_program_code_str}"]')
+            print("New program was added successfully to Demo-patient")
+            assert True
+        except NoSuchElementException:
+            print("Failed to add program to Demo-client")
+            assert False
