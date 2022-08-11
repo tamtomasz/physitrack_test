@@ -5,7 +5,7 @@ from framework.web_driver.webdriver_factory import WebDriverFactory
 
 
 def pytest_addoption(parser):
-    parser.addoption("--browser", action="store", default="firefox")
+    parser.addoption("--browser", action="store", default="chrome")
 
 @fixture
 def get_browser(request):
